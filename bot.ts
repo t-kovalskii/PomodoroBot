@@ -20,3 +20,5 @@ bot.on('message', message => {
         bot.sendMessage(chatId, '*This command does not exist*\n' +
             'Type /help to get the list of available commands', { parse_mode: 'Markdown' });
 });
+
+export default bot;
