@@ -12,7 +12,14 @@ bot.on('message', message => {
     if (!message.text || message.text.charAt(0) != '/') return;
 
     const chatId = message.chat.id;
-    const response = getResponse(message);
+
+    let response: string | null;
+    try {
+        response = getResponse(message);
+    } catch (e) {
+        response = '*Error occurred when processing this command*\n' +
+            'Try to restart the bot by /start command';
+    }
 
     if (response)
         bot.sendMessage(chatId, response, { parse_mode: 'Markdown', disable_web_page_preview: true });
