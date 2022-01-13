@@ -1,14 +1,15 @@
 import bot from './bot';
 import { formatMilliseconds, toMills } from "./lib/time";
 import { getNextTask, handleTimerRunout } from "./lib/timer";
+import { getDB } from "./redis";
 
 import type TelegramBot from 'node-telegram-bot-api';
 import type { TimerState } from "./types";
 
 const timerSettings = new Map<number, TimerState>();
 
-const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
-    'start': message => {
+const actions: { [key: string]: (msg: TelegramBot.Message) => Promise<string> } = {
+    'start': async message => {
         timerSettings.set(message.chat.id, {
             settings: {
                 work_task: toMills(25), break_task: toMills(10),
@@ -18,6 +19,11 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
             task: 'work_task'
         });
 
+        const db = await getDB();
+        if (message.from)
+            await db.set({ chat_id: message.chat.id, user: message.from });
+        await db.disconnect();
+
         return `Hello, *${message.from ? message.from.first_name : 'stranger'}* 🍅 \n` +
             'I\'m a pomodoro timer bot created to organize workflow using pomodoro technique. ' +
             'It is a quite simple technique which offers optimal combination of pure focused work and rest. ' +
@@ -26,12 +32,12 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
             'Type /help to get the list of available commands';
     },
 
-    'help': () => '/set - *changes work, break, long break duration and pomodoros count* `/set 25 10 30 4`\n' +
+    'help': async () => '/set - *changes work, break, long break duration and pomodoros count* `/set 25 10 30 4`\n' +
         "/settings - *current timer settings*\n" + "/info - *current timer state*\n" +
         "/go - *start current task*\n" + "/pause - *pause current task*\n" +
         "/skip - *skip current task*\n" + "/cancel - *cancel current task*",
 
-    'set': message => {
+    'set': async message => {
         const { timer } = timerSettings.get(message.chat.id) as TimerState;
 
         if (timer?.timeout)
@@ -60,7 +66,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
         return 'Timer settings have been changed';
     },
 
-    'settings': message => {
+    'settings': async message => {
         const { settings } = timerSettings.get(message.chat.id) as TimerState;
 
         return `Work: *${formatMilliseconds(settings!.work_task)}*\n` +
@@ -69,7 +75,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
             `Pomodoros before long break: *${settings!.pomodoros}*`;
     },
 
-    'info': message => {
+    'info': async message => {
         const { timer, task } = timerSettings.get(message.chat.id) as TimerState;
 
         if (timer) {
@@ -87,7 +93,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
         return 'Timer is not running\n' + `Current task: *${task}*`;
     },
 
-    'go': message => {
+    'go': async message => {
         const {
             timer, settings, pomodoros_done, task
         } = timerSettings.get(message.chat.id) as TimerState;
@@ -112,7 +118,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
             `*${formatMilliseconds(timer ? timer.pause_remaining : settings[task])}* remaining`;
     },
 
-    'pause': message => {
+    'pause': async message => {
         const {
             timer, settings, task, pomodoros_done
         } = timerSettings.get(message.chat.id) as TimerState;
@@ -134,7 +140,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
         return 'Timer paused';
     },
 
-    'skip': message => {
+    'skip': async message => {
         const { settings, task, pomodoros_done, timer } = timerSettings.get(message.chat.id) as TimerState;
 
         if (timer?.timeout)
@@ -148,7 +154,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
         return `Task *${task}* skipped\n` + '*Type /go to start the next task*';
     },
 
-    'cancel': message => {
+    'cancel': async message => {
         const { settings, task, pomodoros_done, timer } = timerSettings.get(message.chat.id) as TimerState;
 
         if (timer?.timeout)
@@ -159,10 +165,10 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
         return 'Task cancelled';
     },
 
-    'github': () => 'https://github.com/t-kovalskii/PomodoroBot\n' +
+    'github': async () => 'https://github.com/t-kovalskii/PomodoroBot\n' +
         'Created by `@kovalskii_i`',
 
-    'amogus': () => `\
+    'amogus': async () => `\
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀
@@ -184,9 +190,9 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => string } = {
 ⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁`
 };
 
-export const getResponse = (message: TelegramBot.Message) => {
+export const getResponse = async (message: TelegramBot.Message) => {
     const actionName = message.text!.slice(1).split(' ')[0];
     const action = actions[actionName];
 
-    return action ? action(message) : null;
+    return action ? await action(message) : null;
 }

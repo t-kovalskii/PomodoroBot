@@ -8,15 +8,16 @@ dotenv.config();
 const token = process.env.TELEGRAM_API_KEY || '';
 const bot = new TelegramBot(token, { polling: true });
 
-bot.on('message', message => {
+bot.on('message', async message => {
     if (!message.text || message.text.charAt(0) != '/') return;
 
     const chatId = message.chat.id;
 
     let response: string | null;
     try {
-        response = getResponse(message);
+        response = await getResponse(message);
     } catch (e) {
+        console.error(e);
         response = '*Error occurred when processing this command*\n' +
             'Try to restart the bot by /start command';
     }
