@@ -165,10 +165,7 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => Promise<string> } 
         return 'Task cancelled';
     },
 
-    'github': async () => 'https://github.com/t-kovalskii/PomodoroBot\n' +
-        'Created by `@kovalskii_i`',
-
-    'amogus': async () => `\
+    'sus': async () => `\
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀
