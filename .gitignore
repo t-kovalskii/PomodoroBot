@@ -4,5 +4,5 @@ node_modules/
 # js tsc output
 dist/
 
-# dev env file
+# env file
 .env
