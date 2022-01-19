@@ -165,6 +165,8 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => Promise<string> } 
         return 'Task cancelled';
     },
 
+    'rate': async () => 'You can rate the bot [here](https://t.me/dailychannelsbot?start=p_timer_bot)',
+
     'sus': async () => `\
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
