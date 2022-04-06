@@ -167,6 +167,8 @@ const actions: { [key: string]: (msg: TelegramBot.Message) => Promise<string> } 
 
     'rate': async () => 'You can rate the bot [here](https://t.me/dailychannelsbot?start=p_timer_bot)',
 
+    'donate': async () => `*BTC (SeqWit):*\n${process.env.BTC_SEQWIT_ADRESS}`,
+
     'sus': async () => `\
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
